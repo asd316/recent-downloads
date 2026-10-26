@@ -63,14 +63,17 @@ public struct DownloadsScanner: DownloadsScanning {
             ))
         }
 
-        files.sort { lhs, rhs in
+        return Array(Self.ordered(files).prefix(limit))
+    }
+
+    /// 新的在前；日期相同时按文件名稳定排序。
+    static func ordered(_ files: [DownloadFile]) -> [DownloadFile] {
+        files.sorted { lhs, rhs in
             if lhs.sortDate != rhs.sortDate {
                 return lhs.sortDate > rhs.sortDate
             }
             return lhs.displayName.localizedStandardCompare(rhs.displayName) == .orderedAscending
         }
-
-        return Array(files.prefix(limit))
     }
 
     private static func isTemporaryFile(_ url: URL) -> Bool {

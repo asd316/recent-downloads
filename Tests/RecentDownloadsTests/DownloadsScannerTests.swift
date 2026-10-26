@@ -94,14 +94,13 @@ final class DownloadsScannerTests {
 
     @Test("日期相同时按文件名稳定排序")
     func stableSortByNameWhenDatesEqual() async throws {
+        // 扫描时 added-to-directory 日期由文件系统决定，做不到完全相同，所以直接验证排序规则。
         let sameDate = Date(timeIntervalSince1970: 1_700_000_000)
-        try makeFile(named: "b.txt", modified: sameDate)
-        try makeFile(named: "a.txt", modified: sameDate)
-        try makeFile(named: "c.txt", modified: sameDate)
+        let files = ["b.txt", "a.txt", "c.txt"].map {
+            DownloadFile(url: tempDir.appendingPathComponent($0), displayName: $0, sortDate: sameDate, byteSize: nil)
+        }
 
-        let files = try await scanner.scan(directory: tempDir, limit: 15)
-
-        #expect(files.map(\.displayName) == ["a.txt", "b.txt", "c.txt"])
+        #expect(DownloadsScanner.ordered(files).map(\.displayName) == ["a.txt", "b.txt", "c.txt"])
     }
 
     @Test("优先使用 addedToDirectoryDate 排序")
