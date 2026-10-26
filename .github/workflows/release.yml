@@ -1,0 +1,32 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: 构建 Release
+        run: swift build -c release
+
+      - name: 运行测试
+        run: swift test
+
+      - name: 打包 DMG
+        run: |
+          bash Scripts/build-dmg.sh
+          # Actions 环境用英文文件名上传，避免中文文件名问题
+          cp ".build/最近下载.dmg" .build/recent-downloads.dmg
+
+      - name: 发布到 GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          files: .build/recent-downloads.dmg
+          generate_release_notes: true
+          fail_on_unmatched_files: true
